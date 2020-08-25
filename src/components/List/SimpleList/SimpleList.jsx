@@ -6,7 +6,6 @@ import {
   handleEditModeSelect,
   moveItemsInList,
 } from '../../../utils/DragAndDropUtils';
-
 import List from '../List';
 
 const itemPropTypes = {

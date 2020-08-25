@@ -3,6 +3,7 @@ import { render, fireEvent, screen } from '@testing-library/react';
 import debounce from 'lodash/debounce';
 
 import { sampleHierarchy } from '../List.story';
+import { EditingStyle } from '../../../utils/DragAndDropUtils';
 
 import HierarchyList, { searchForNestedItemValues, searchForNestedItemIds } from './HierarchyList';
 // https://github.com/facebook/jest/issues/3465#issuecomment-449007170
@@ -117,7 +118,7 @@ describe('HierarchyList', () => {
 
   it('clicking expansion caret should expand item', () => {
     render(<HierarchyList items={items} title="Hierarchy List" pageSize="xl" />);
-    fireEvent.click(screen.getAllByRole('button')[0]);
+    fireEvent.click(screen.getAllByTestId('expand-icon')[0]);
     // Category item should be expanded
     expect(screen.getByTitle('Chicago White Sox')).toBeInTheDocument();
     // Nested item should be visible
@@ -134,7 +135,7 @@ describe('HierarchyList', () => {
   it('clicking expansion caret should collapse expanded item', () => {
     render(<HierarchyList items={items} title="Hierarchy List" pageSize="xl" />);
     // Expand
-    fireEvent.click(screen.getAllByRole('button')[0]);
+    fireEvent.click(screen.getAllByTestId('expand-icon')[0]);
     // Category item should be expanded
     expect(screen.getByTitle('Chicago White Sox')).toBeInTheDocument();
     // Nested item should be visible
@@ -147,7 +148,7 @@ describe('HierarchyList', () => {
     expect(screen.getByTitle('Houston Astros')).toBeInTheDocument();
     expect(screen.getByTitle('Washington Nationals')).toBeInTheDocument();
     // Collapse
-    fireEvent.click(screen.getAllByRole('button')[0]);
+    fireEvent.click(screen.getAllByTestId('expand-icon')[0]);
     // Category item should be expanded
     expect(screen.getByTitle('Chicago White Sox')).toBeInTheDocument();
     // Nested item should be visible
@@ -243,6 +244,7 @@ describe('HierarchyList', () => {
         hasPagination={false}
       />
     );
+
     // Nested item should be visible
     const selectedItem = screen.getByTitle('JD Davis');
     expect(selectedItem).toBeInTheDocument();
@@ -272,9 +274,12 @@ describe('HierarchyList', () => {
         hasPagination={false}
       />
     );
+
     expect(screen.queryByTitle('JD Davis')).toBeInTheDocument();
+
     const selectedYankee = screen.getByTitle('Gary Sanchez');
     expect(selectedYankee).toBeInTheDocument();
+
     expect(selectedYankee?.parentElement?.parentElement?.parentElement?.className).toContain(
       '__selected'
     );
@@ -286,9 +291,19 @@ describe('HierarchyList', () => {
       <HierarchyList items={items} title="Hierarchy List" pageSize="xl" onSelect={onSelect} />
     );
     // Expand the category
-    fireEvent.click(screen.getAllByRole('button')[0]);
+    fireEvent.click(screen.getAllByTestId('expand-icon')[0]);
     // Select the item
-    fireEvent.click(screen.getByTitle('Leury Garcia'));
+    fireEvent.click(screen.getAllByTitle('Leury Garcia')[0]);
     expect(onSelect).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows move button when item is selected', () => {
+    render(
+      <HierarchyList
+        items={items}
+        title="Hierarchy List"
+        editingStyle={EditingStyle.MultipleNesting}
+      />
+    );
   });
 });

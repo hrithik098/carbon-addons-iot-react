@@ -1,7 +1,8 @@
 import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react';
+import { render, fireEvent, screen, within } from '@testing-library/react';
 
 import { settings } from '../../../constants/Settings';
+import { EditingStyle } from '../../../utils/DragAndDropUtils';
 
 import SimpleList from './SimpleList';
 
@@ -160,5 +161,40 @@ describe('SimpleList', () => {
     expect(
       screen.getAllByRole('button')[0].className.includes(`${iotPrefix}--list-item__selected`)
     ).toEqual(false);
+  });
+
+  it('SimpleList reorder', () => {
+    let newData = null;
+    render(
+      <SimpleList
+        title="Simple list"
+        items={getListItems(5)}
+        editingStyle={EditingStyle.Single}
+        onListUpdated={newList => {
+          newData = newList;
+        }}
+      />
+    );
+
+    const listItems = screen.getAllByRole('listitem');
+    const firstItem = within(listItems[0]).getByTitle('Item 1');
+
+    expect(firstItem).toBeInTheDOM();
+
+    expect(listItems.length).toEqual(5);
+
+    const targets = within(listItems[0]).getAllByTestId('list-target');
+
+    expect(targets.length).toEqual(2);
+
+    fireEvent.dragStart(firstItem);
+    fireEvent.dragEnter(targets[0]);
+    fireEvent.dragOver(targets[0]);
+    fireEvent.drop(targets[0]);
+
+    // const secondItem = within(screen.getAllByRole('listitem')[0]).getByTitle('Item 2');
+
+    // expect(secondItem).toBeInTheDOM();
+    expect(newData[1].content.value).toEqual('Item 2');
   });
 });

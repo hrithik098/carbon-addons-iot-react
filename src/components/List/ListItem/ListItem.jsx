@@ -10,13 +10,14 @@ import { settings } from '../../../constants/Settings';
 
 import ListTarget, { TargetSize } from './ListTarget';
 
-const { iotPrefix, prefix } = settings;
+const { iotPrefix } = settings;
 
 export const ItemType = 'ListItem';
 
 const ListItemWrapper = ({
   id,
   editingStyle,
+  expanded,
   isSelectable,
   itemWillMove,
   onItemMoved,
@@ -38,6 +39,7 @@ const ListItemWrapper = ({
         { [`${iotPrefix}--list-item__large`]: isLargeRow },
         { [`${iotPrefix}--list-item-editable`]: editingStyle }
       )}
+      data_testid={selected ? 'list-item__selected' : null}
       onKeyPress={({ key }) => key === 'Enter' && onSelect(id)}
       onClick={() => {
         onSelect(id);
@@ -62,6 +64,7 @@ const ListItemWrapper = ({
 
     return (
       <div
+        role="listitem"
         className={classnames(`${iotPrefix}--list-item-editable--drag-container`, {
           [`${iotPrefix}--list-item-editable-dragging`]: isDragging,
         })}
@@ -81,6 +84,7 @@ const ListItemWrapper = ({
           canNest ? (
             <ListTarget
               id={id}
+              isDragging={isDragging}
               targetPosition={DropLocation.Nested}
               targetSize={TargetSize.Full}
               itemWillMove={itemWillMove}
@@ -90,14 +94,17 @@ const ListItemWrapper = ({
 
           <ListTarget
             id={id}
+            isDragging={isDragging}
             targetPosition={DropLocation.Above}
             itemWillMove={itemWillMove}
             targetSize={canNest ? TargetSize.Third : TargetSize.Half}
             onItemMoved={onItemMoved}
           />
+
           <ListTarget
             id={id}
-            targetPosition={DropLocation.Below}
+            isDragging={isDragging}
+            targetPosition={expanded ? DropLocation.Nested : DropLocation.Below} // If item is expanded then the bottom target will nest
             itemWillMove={itemWillMove}
             targetSize={canNest ? TargetSize.Third : TargetSize.Half}
             onItemMoved={onItemMoved}
@@ -121,6 +128,7 @@ const ListItemWrapperProps = {
     EditingStyle.SingleNesting,
     EditingStyle.MultipleNesting,
   ]),
+  expanded: PropTypes.bool.isRequired,
   isLargeRow: PropTypes.bool.isRequired,
   isSelectable: PropTypes.bool.isRequired,
   isDragging: PropTypes.bool.isRequired,
@@ -171,7 +179,7 @@ const ListItemPropTypes = {
   connectDragPreview: PropTypes.func.isRequired,
   index: PropTypes.number.isRequired,
   dragPreviewText: PropTypes.string,
-  nestedIndex: PropTypes.arrayOf(PropTypes.number),
+  nestingLevel: PropTypes.number,
   isDragging: PropTypes.bool.isRequired,
   onItemMoved: PropTypes.func.isRequired,
   itemWillMove: PropTypes.func.isRequired,
@@ -191,7 +199,7 @@ const ListItemDefaultProps = {
   rowActions: [],
   icon: null,
   iconPosition: 'left',
-  nestingLevel: [],
+  nestingLevel: 0,
   isCategory: false,
   i18n: {
     expand: 'Expand',
@@ -221,7 +229,6 @@ const ListItem = ({
   isCategory,
   i18n,
   isDragging,
-  isOver,
   selectedItemRef,
   tags,
   connectDragSource,
@@ -231,13 +238,14 @@ const ListItem = ({
 }) => {
   const handleExpansionClick = () => isExpandable && onExpand(id);
 
-  const renderNestingOffset = () =>
-    nestingLevel.length > 0 ? (
+  const renderNestingOffset = () => {
+    return nestingLevel > 0 ? (
       <div
-        className={`${prefix}--assistive-text ${iotPrefix}--list-item--nesting-offset`}
-        style={{ width: `${nestingLevel.length * 30}px` }}
+        className={`${iotPrefix}--list-item--nesting-offset`}
+        style={{ width: `${nestingLevel * 30}px` }}
       />
     ) : null;
+  };
 
   const renderExpander = () =>
     isExpandable ? (
@@ -246,6 +254,7 @@ const ListItem = ({
         tabIndex={0}
         className={`${iotPrefix}--list-item--expand-icon`}
         onClick={handleExpansionClick}
+        data-testid="expand-icon"
         onKeyPress={({ key }) => key === 'Enter' && handleExpansionClick()}
       >
         {expanded ? (
@@ -298,10 +307,10 @@ const ListItem = ({
       {...{
         id,
         isSelectable,
-        isOver,
         selected,
         isDragging,
         editingStyle,
+        expanded,
         isLargeRow,
         onSelect,
         connectDragSource,
@@ -310,8 +319,8 @@ const ListItem = ({
       }}
     >
       {renderDragPreview()}
-      {renderNestingOffset()}
       {dragIcon()}
+      {renderNestingOffset()}
       {renderExpander()}
       <div
         className={classnames(

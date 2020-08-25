@@ -17,7 +17,7 @@ const ListTargetPropTypes = {
   connectDropTarget: PropTypes.func.isRequired,
   isOver: PropTypes.bool,
   targetPosition: PropTypes.string.isRequired,
-  targetSize: PropTypes.oneOf[(TargetSize.Third, TargetSize.Half, TargetSize.Full)],
+  targetSize: PropTypes.oneOf([TargetSize.Third, TargetSize.Half, TargetSize.Full]),
 };
 
 const ListTargetDefaultProps = {
@@ -36,6 +36,7 @@ const ListTarget = ({ connectDropTarget, targetPosition, targetSize, isOver }) =
 
   return (
     <div
+      data-testid="list-target"
       className={classnames(`${iotPrefix}--list-item-editable--drop-target-${targetPosition}`, {
         [`${iotPrefix}--list-item-editable--drop-target-${targetPosition}__over`]: isOver,
       })}

@@ -487,7 +487,7 @@ storiesOf('Watson IoT Experimental/List', module)
         isLoading={boolean('isLoading', false)}
       />
     </div>
-  ));
+  ))
   .add('basic (single column) with reorder', () => {
     const SingleColumnReorder = () => {
       const startData = Object.entries(

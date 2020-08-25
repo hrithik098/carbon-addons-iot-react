@@ -1,10 +1,15 @@
 import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react';
 import { Add16, Edit16 } from '@carbon/icons-react';
+import TestBackend from 'react-dnd-test-backend';
+import { DragDropContext } from 'react-dnd';
 
 import { Tag } from '../../Tag';
 
-import { UnconnectedListItem } from './ListItem';
+import ListItem, { UnconnectedListItem } from './ListItem';
+
+const wrapInTestContext = (DecoratedComponent, props) =>
+  DragDropContext(TestBackend)(() => <DecoratedComponent {...props} />);
 
 describe('ListItem', () => {
   it('test ListItem gets rendered', () => {
@@ -119,7 +124,39 @@ describe('ListItem', () => {
   });
 
   it('ListItem in edit mode', () => {
-    render(<UnconnectedListItem id="1" value="test" isEditing />);
+    render(<UnconnectedListItem id="1" value="test" editingStyle="multiple" />);
     expect(screen.getByTestId('list-item-editable')).toBeTruthy();
+  });
+
+  it('ListItem has three targets in nesting mode', () => {
+    const listItemProps = {
+      id: '1',
+      value: 'test',
+      editingStyle: 'single-nesting',
+    };
+
+    const Wrapped = wrapInTestContext(UnconnectedListItem, listItemProps);
+
+    render(<Wrapped />);
+
+    const targets = screen.getAllByTestId('list-target');
+
+    expect(targets.length).toEqual(3);
+  });
+
+  it('ListItem has two targets in outside of nesting mode', () => {
+    const listItemProps = {
+      id: '1',
+      value: 'test',
+      editingStyle: 'single',
+    };
+
+    const Wrapped = wrapInTestContext(UnconnectedListItem, listItemProps);
+
+    render(<Wrapped />);
+
+    const targets = screen.getAllByTestId('list-target');
+
+    expect(targets.length).toEqual(2);
   });
 });
